@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { getUser, login, loginWithGoogle, logout, register } from './services/auth'
+import { login, loginWithGoogle, logout, register } from './services/auth'
 import type { User } from './types'
+import { getCurrentUser } from './services/users'
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null)
@@ -11,7 +12,7 @@ export default function App() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        setUser(await getUser())
+        setUser(await getCurrentUser())
       } catch (err) {
         console.error(err)
         console.log('Not authenticated')

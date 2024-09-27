@@ -1,13 +1,17 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import { MongoClient, ObjectId, ServerApiVersion, type WithId } from 'mongodb'
-import session from 'express-session'
+import cookieSession from 'cookie-session'
 import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { Strategy as LocalStrategy } from 'passport-local'
-import cors from 'cors'
+import path from 'path'
+// import cors from 'cors'
 import bcrypt from 'bcrypt'
 import type { User } from './types'
+import { getAuthRoutes } from './routes/auth'
+import { getUserRoutes } from './routes/users'
+import { isAuthenticated } from './middlewares/auth'
 
 dotenv.config()
 
@@ -23,16 +27,29 @@ const dbClient = new MongoClient(MONGODB_URI, {
 
 const app = express()
 
+// app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
 app.use(express.json())
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
-app.use(session({ secret: SESSION_SECRET, resave: false, saveUninitialized: true }))
+
+app.use(cookieSession({ name: 'session', keys: [SESSION_SECRET], maxAge: 60 * 60 * 1000 }))
+
+// ISSUE: https://github.com/jaredhanson/passport/issues/904#issuecomment-1307558283
+app.use(function (req, res, next) {
+  const placeholder = ((cb: any) => cb()) as any
+
+  if (!req.session.regenerate) req.session.regenerate = placeholder
+  if (!req.session.save) req.session.save = placeholder
+
+  next()
+})
 
 app.use(passport.initialize())
 app.use(passport.session())
 
+app.use(express.static(path.join(__dirname, 'client/dist')))
+
 passport.use(
   new GoogleStrategy(
-    { clientID: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET, callbackURL: '/auth/google/callback' },
+    { clientID: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET, callbackURL: '/api/auth/google/callback' },
     async (accessToken, refreshToken, profile, done) => {
       const usersCollection = dbClient.db().collection<User>('users')
 
@@ -84,61 +101,15 @@ passport.deserializeUser(async (id: string, done) => {
   done(null, user)
 })
 
-app.get('/', (req, res) => {
-  res.send('Hello, TypeScript with Express!')
+app.get('/api/health', (req, res) => {
+  res.send('OK')
 })
 
-app.post('/api/login', passport.authenticate('local'), (req, res) => {
-  res.json(req.user)
-})
+app.use('/api/auth', getAuthRoutes(dbClient))
+app.use('/api/users', isAuthenticated, getUserRoutes())
 
-app.post('/api/register', async (req, res) => {
-  const { email, password, name } = req.body
-  const usersCollection = dbClient.db().collection<User>('users')
-
-  const hashedPassword = await bcrypt.hash(password, 10)
-  const newUser: User = {
-    email,
-    password: hashedPassword,
-    name,
-  }
-
-  try {
-    const { insertedId } = await usersCollection.insertOne(newUser)
-    res.status(201).json({ _id: insertedId, ...newUser, password: undefined })
-  } catch (error) {
-    res.status(400).send('Error registering user.')
-  }
-})
-
-app.get(
-  '/auth/google',
-  passport.authenticate('google', {
-    scope: ['profile', 'email'],
-  }),
-)
-
-app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-  res.redirect('http://localhost:5173')
-})
-
-app.get('/api/user', (req, res) => {
-  if (!req.isAuthenticated()) {
-    res.status(401).send('Not authenticated')
-    return
-  }
-
-  const { password, ...user } = req.user as User
-  res.json(user)
-})
-
-app.post('/api/logout', (req, res) => {
-  req.logout(err => {
-    if (err) {
-      return res.status(500).send('Logout error')
-    }
-    res.sendStatus(200)
-  })
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/dist', 'index.html'))
 })
 
 dbClient
