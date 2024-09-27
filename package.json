@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && cd client && pnpm build",
+    "build": "tsc && cd client && pnpm i && pnpm build",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts"
   },
