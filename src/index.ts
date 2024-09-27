@@ -45,7 +45,7 @@ app.use(function (req, res, next) {
 app.use(passport.initialize())
 app.use(passport.session())
 
-app.use(express.static(path.join(__dirname, 'client/dist')))
+app.use(express.static(path.join(__dirname, '../client/dist')))
 
 passport.use(
   new GoogleStrategy(
@@ -109,7 +109,7 @@ app.use('/api/auth', getAuthRoutes(dbClient))
 app.use('/api/users', isAuthenticated, getUserRoutes())
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/dist', 'index.html'))
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'))
 })
 
 dbClient
