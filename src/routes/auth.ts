@@ -9,7 +9,7 @@ export function getAuthRoutes(dbClient: MongoClient): Router {
   const router = Router()
 
   router.post('/login', passport.authenticate('local'), (req, res) => {
-    res.json(req.user)
+    res.json({ ...req.user, password: undefined })
   })
 
   router.post('/register', async (req, res) => {
@@ -34,7 +34,7 @@ export function getAuthRoutes(dbClient: MongoClient): Router {
   router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
 
   router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-    res.redirect('http://localhost:5173')
+    res.redirect('/')
   })
 
   router.post('/logout', isAuthenticated, (req, res) => {
