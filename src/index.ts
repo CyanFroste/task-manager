@@ -11,6 +11,7 @@ import { createDbIndices } from './utils'
 import { getDeserializeUser, getGoogleStrategy, getLocalStrategy, serializeUser } from './middlewares/passport'
 import { fixCookieSession } from './middlewares/session'
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_DEV, MONGODB_URI, PORT, SESSION_SECRET } from './constants'
+import { getTaskRoutes } from './routes/tasks'
 
 console.log(`Starting in ${IS_DEV ? 'development' : 'production'} mode`)
 
@@ -41,6 +42,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', getAuthRoutes(dbClient))
 app.use('/api/users', isAuthenticated, getUserRoutes())
+app.use('/api/tasks', isAuthenticated, getTaskRoutes(dbClient))
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'))
