@@ -1,20 +1,28 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { login, loginWithGoogle } from '../../services/auth'
+import { login, loginWithGoogle, register } from '../../services/auth'
 import { useCallback, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { parseGenericError } from '../../utils'
 import { setCurrentUser } from '../../stores/auth'
+import { parseGenericError } from '../../utils'
 
-type LoginCredentials = { email: string; password: string }
+type RegisterCredentials = {
+  email: string
+  name: string
+  password: string
+  confirmPassword: string
+}
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const [errors, setErrors] = useState<string[]>([])
 
-  const mutationLogin = useMutation({
-    mutationFn: ({ email, password }: LoginCredentials) => login(email, password),
+  const mutationRegister = useMutation({
+    mutationFn: async ({ email, password, name }: RegisterCredentials) => {
+      await register(email, password, name)
+      return await login(email, password)
+    },
     onSuccess: user => {
       setErrors([])
       queryClient.invalidateQueries({ queryKey: ['CURRENT_USER'] })
@@ -32,24 +40,33 @@ export default function LoginScreen() {
       evt.preventDefault()
 
       const email = (evt.currentTarget.elements.namedItem('email') as HTMLInputElement).value
+      const name = (evt.currentTarget.elements.namedItem('name') as HTMLInputElement).value
       const password = (evt.currentTarget.elements.namedItem('password') as HTMLInputElement).value
+      const confirmPassword = (evt.currentTarget.elements.namedItem('confirmPassword') as HTMLInputElement).value
 
       if (!email) return setErrors(['Email is required.'])
       if (!password) return setErrors(['Password is required.'])
+      if (!name) return setErrors(['Name is required.'])
+      if (password !== confirmPassword) return setErrors(['Passwords do not match.'])
 
       setErrors([])
-      mutationLogin.mutate({ email, password })
+      mutationRegister.mutate({ name, email, password, confirmPassword })
     },
-    [mutationLogin],
+    [mutationRegister],
   )
 
   return (
     <div>
       <div className="container py-10">
         <div className="flex flex-col max-w-screen-sm mx-auto gap-6">
-          <h2 className="text-4xl text-blue-500 font-semibold">Login</h2>
+          <h2 className="text-4xl text-blue-500 font-semibold">Signup</h2>
 
           <form className="border-2 rounded-md shadow-lg border-blue-500 p-6 flex flex-col gap-4" onSubmit={onSubmit}>
+            <label className="text-gray-600 flex flex-col gap-1">
+              <span className="text-sm font-medium">Name</span>
+              <input name="name" type="text" placeholder="Name" className="p-2 border rounded" />
+            </label>
+
             <label className="text-gray-600 flex flex-col gap-1">
               <span className="text-sm font-medium">Email</span>
               <input name="email" type="email" placeholder="Email" className="p-2 border rounded" />
@@ -58,6 +75,16 @@ export default function LoginScreen() {
             <label className="text-gray-600 flex flex-col gap-1">
               <span className="text-sm font-medium">Password</span>
               <input name="password" type="password" placeholder="Password" className="p-2 border rounded" />
+            </label>
+
+            <label className="text-gray-600 flex flex-col gap-1">
+              <span className="text-sm font-medium">Confirm Password</span>
+              <input
+                name="confirmPassword"
+                type="password"
+                placeholder="Confirm Password"
+                className="p-2 border rounded"
+              />
             </label>
 
             {errors.length > 0 && (
@@ -71,13 +98,13 @@ export default function LoginScreen() {
             )}
 
             <button type="submit" className="bg-blue-500 text-white font-medium p-2 rounded">
-              Login
+              Signup
             </button>
 
             <p className="text-center">
-              Do you have an account?{' '}
-              <Link to="/register" className="text-blue-500">
-                Signup
+              Already have an account?{' '}
+              <Link to="/login" className="text-blue-500">
+                Login
               </Link>
             </p>
 

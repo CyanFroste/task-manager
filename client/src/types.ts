@@ -4,3 +4,5 @@ export type User = {
   email?: string
   googleId?: string
 }
+
+export type GenericResponse = { message: string }

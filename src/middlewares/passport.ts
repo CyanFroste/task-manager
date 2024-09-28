@@ -22,8 +22,9 @@ export function getGoogleStrategy(clientID: string, clientSecret: string, dbClie
 
         const { insertedId } = await usersCollection.insertOne(newUser)
         return done(null, { _id: insertedId, ...newUser })
-      } catch (err) {
-        return done(err)
+      } catch {
+        // ? This error is propagated to the client as HTML. (can handle it differently)
+        return done('Unable to sign in with Google.', false)
       }
     },
   )
@@ -35,14 +36,14 @@ export function getLocalStrategy(dbClient: MongoClient) {
 
     try {
       const user = await usersCollection.findOne({ email })
-      if (!user) return done(null, false, { message: 'Incorrect email.' })
+      if (!user) throw new Error('User not found.')
 
-      if (!(await verifyPassword(user.password ?? '', password)))
-        return done(null, false, { message: 'Incorrect password.' })
+      if (!(await verifyPassword(user.password ?? '', password))) throw new Error('Incorrect password.')
 
       return done(null, user)
-    } catch (err) {
-      return done(err)
+    } catch {
+      // ? This error is propagated to the client as HTML. (can handle it differently)
+      return done('Invalid email or password.', false)
     }
   })
 }

@@ -5,6 +5,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import Container from './components/Container'
 import HomeScreen from './components/home/HomeScreen'
 import LoginScreen from './components/auth/LoginScreen'
+import RegisterScreen from './components/auth/RegisterScreen'
 
 import './index.css'
 
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
     children: [
       { path: '', element: <HomeScreen /> },
       { path: 'login', element: <LoginScreen /> },
+      { path: 'register', element: <RegisterScreen /> },
     ],
   },
 ])

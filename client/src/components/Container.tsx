@@ -5,6 +5,10 @@ import { setCurrentUser, initializeAuth, useAuthStore } from '../stores/auth'
 import { useQuery } from '@tanstack/react-query'
 import NavBar from './NavBar'
 
+function isPublicAuthRoute(pathname: string) {
+  return pathname === '/login' || pathname === '/register'
+}
+
 export default function Container() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -20,17 +24,20 @@ export default function Container() {
 
     if (queryCurrentUser.isSuccess && queryCurrentUser.data) {
       setCurrentUser(queryCurrentUser.data)
+    } else if (queryCurrentUser.isError) {
+      setCurrentUser(null)
     }
 
-    if (!isInitialized) return
+    if (!isInitialized || location.pathname.startsWith('/api')) return
 
-    if (!user) return navigate('/login')
-    if (user && location.pathname === '/login') return navigate('/')
+    if (!user && !isPublicAuthRoute(location.pathname)) return navigate('/login')
+    if (user && isPublicAuthRoute(location.pathname)) return navigate('/')
   }, [
     isInitialized,
     location.pathname,
     navigate,
     queryCurrentUser.data,
+    queryCurrentUser.isError,
     queryCurrentUser.isFetched,
     queryCurrentUser.isSuccess,
     user,

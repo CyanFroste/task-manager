@@ -1,53 +1,53 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { setCurrentUser, useAuthStore } from '../stores/auth'
 import { logout } from '../services/auth'
 import { useCallback } from 'react'
+import { ClipboardListIcon } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function NavBar() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { user, isInitialized } = useAuthStore()
 
   const onLogout = useCallback(async () => {
     await logout()
+
+    queryClient.invalidateQueries({ queryKey: ['CURRENT_USER'] })
     setCurrentUser(null)
-  }, [])
-
-  //   const onLogin = async () => {
-  //     setUser(await login(email, password))
-  //   }
-
-  //   const onRegister = async () => {
-  //     await register(email, password, name)
-  //     await onLogin()
-  //   }
-
-  //   const onLoginWithGoogle = async () => {
-  //     loginWithGoogle()
-  //   }
+    navigate('/login')
+  }, [navigate, queryClient])
 
   return (
-    <header className="h-16 flex items-center bg-blue-500">
+    <header className="bg-blue-500">
       {isInitialized && (
         <>
-          {user ? (
-            <nav className="ml-auto">
-              <ul className="flex items-center">
+          <nav className="h-16 container flex items-center text-white">
+            <Link to="/" className="text-3xl">
+              <ClipboardListIcon />
+            </Link>
+
+            <ul className="ml-auto flex items-center gap-4">
+              {user ? (
                 <li>
-                  <button onClick={onLogout}>Log Out</button>
+                  <button className="py-2 px-4 rounded bg-white text-blue-500 font-medium" onClick={onLogout}>
+                    Log Out
+                  </button>
                 </li>
-              </ul>
-            </nav>
-          ) : (
-            <nav className="ml-auto">
-              <ul className="flex items-center">
-                <li>
-                  <Link to="/login">Login</Link>
-                </li>
-                <li>
-                  <Link to="/register">Register</Link>
-                </li>
-              </ul>
-            </nav>
-          )}
+              ) : (
+                <>
+                  <li>
+                    <Link to="/login" className="py-2 px-4 rounded bg-white text-blue-500 font-medium">
+                      Login
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/register">Signup</Link>
+                  </li>
+                </>
+              )}
+            </ul>
+          </nav>
         </>
       )}
     </header>
