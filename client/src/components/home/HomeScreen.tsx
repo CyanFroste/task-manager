@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { login, loginWithGoogle, logout, register } from './services/auth'
-import type { User } from './types'
-import { getCurrentUser } from './services/users'
+import type { User } from '../../types'
+import { login, loginWithGoogle, logout, register } from '../../services/auth'
+import { getCurrentUser } from '../../services/users'
 
-export default function App() {
+export default function HomeScreen() {
   const [user, setUser] = useState<User | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

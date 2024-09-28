@@ -4,6 +4,7 @@ import passport from 'passport'
 import type { User } from '../types'
 import { isAuthenticated } from '../middlewares/auth'
 import { hashPassword } from '../utils'
+import { IS_DEV } from '../constants'
 
 export function getAuthRoutes(dbClient: MongoClient): Router {
   const router = Router()
@@ -35,7 +36,7 @@ export function getAuthRoutes(dbClient: MongoClient): Router {
   router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }))
 
   router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }), (req, res) => {
-    res.redirect('/')
+    res.redirect(IS_DEV ? 'http://localhost:5173' : '/')
   })
 
   router.post('/logout', isAuthenticated, (req, res) => {

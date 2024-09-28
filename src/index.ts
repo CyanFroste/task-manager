@@ -10,14 +10,9 @@ import { isAuthenticated } from './middlewares/auth'
 import { createDbIndices } from './utils'
 import { getDeserializeUser, getGoogleStrategy, getLocalStrategy, serializeUser } from './middlewares/passport'
 import { fixCookieSession } from './middlewares/session'
+import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_DEV, MONGODB_URI, PORT, SESSION_SECRET } from './constants'
 
-dotenv.config()
-
-const PORT = process.env.PORT!
-const MONGODB_URI = process.env.MONGODB_URI!
-const SESSION_SECRET = process.env.SESSION_SECRET!
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
+console.log(`Starting in ${IS_DEV ? 'development' : 'production'} mode`)
 
 const dbClient = new MongoClient(MONGODB_URI, {
   serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true },
