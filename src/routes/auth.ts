@@ -1,10 +1,9 @@
 import { Router } from 'express'
 import { MongoClient } from 'mongodb'
 import passport from 'passport'
-// import bcrypt from 'bcrypt'
-import argon2 from 'argon2'
 import type { User } from '../types'
 import { isAuthenticated } from '../middlewares/auth'
+import { hashPassword } from '../utils'
 
 export function getAuthRoutes(dbClient: MongoClient): Router {
   const router = Router()
@@ -18,9 +17,7 @@ export function getAuthRoutes(dbClient: MongoClient): Router {
     const { email, password, name } = req.body
     const usersCollection = dbClient.db().collection<User>('users')
 
-    // const hashedPassword = await bcrypt.hash(password, 10) // argon2 is more secure
-    const hashedPassword = await argon2.hash(password)
-
+    const hashedPassword = await hashPassword(password)
     const newUser: User = {
       email,
       password: hashedPassword,

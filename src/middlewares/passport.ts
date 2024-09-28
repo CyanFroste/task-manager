@@ -1,8 +1,8 @@
 import { MongoClient, ObjectId, type WithId } from 'mongodb'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import { Strategy as LocalStrategy } from 'passport-local'
-import argon2 from 'argon2'
 import type { User } from '../types'
+import { verifyPassword } from '../utils'
 
 export function getGoogleStrategy(clientID: string, clientSecret: string, dbClient: MongoClient) {
   return new GoogleStrategy(
@@ -37,8 +37,7 @@ export function getLocalStrategy(dbClient: MongoClient) {
       const user = await usersCollection.findOne({ email })
       if (!user) return done(null, false, { message: 'Incorrect email.' })
 
-      // if (!(await bcrypt.compare(password, user.password ?? ''))) // argon2 is more secure
-      if (!(await argon2.verify(user.password ?? '', password)))
+      if (!(await verifyPassword(user.password ?? '', password)))
         return done(null, false, { message: 'Incorrect password.' })
 
       return done(null, user)
