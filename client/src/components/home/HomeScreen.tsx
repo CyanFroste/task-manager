@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createTask, deleteTask, getAllTasks, updateTask } from '../../services/tasks'
 import { createTaskBoardMeta } from '../../utils'
 import type { Task, TaskAction, TaskStatus } from '../../types'
+import Select from '../Select'
 
 type CreateTaskParams = { title: string; description: string }
 type UpdateTaskParams = { id: string; title?: string; description?: string; status?: TaskStatus }
@@ -101,11 +102,10 @@ export default function HomeScreen() {
       </button>
 
       <div className="flex items-center gap-4 p-4 rounded-md shadow-lg">
-        {/* <span className="font-medium text-lg">Search</span> */}
         <input type="search" placeholder="Search" className="w-full p-2 border rounded" />
 
         <label className="font-medium shrink-0">Sort By</label>
-        <input type="search" placeholder="Search" className="w-full p-2 border rounded" />
+        <Select options={['Title', 'Created At']} value="Title" onChange={() => {}} />
       </div>
 
       <TaskBoard

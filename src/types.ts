@@ -13,4 +13,5 @@ export type Task = {
   status: TaskStatus
   createdAt: string
   updatedAt: string
+  userId: string
 }
