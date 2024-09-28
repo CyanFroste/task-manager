@@ -1,71 +1,15 @@
-import { useEffect, useState } from 'react'
-import type { User } from '../../types'
-import { login, loginWithGoogle, logout, register } from '../../services/auth'
-import { getCurrentUser } from '../../services/users'
-
 export default function HomeScreen() {
-  const [user, setUser] = useState<User | null>(null)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [name, setName] = useState('')
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setUser(await getCurrentUser())
-      } catch (err) {
-        console.error(err)
-        console.log('Not authenticated')
-      }
-    }
-
-    fetchUser()
-  }, [])
-
-  const onLoginWithGoogle = async () => {
-    loginWithGoogle()
-  }
-
-  const onLogout = async () => {
-    await logout()
-    setUser(null)
-  }
-
-  const onLogin = async () => {
-    setUser(await login(email, password))
-  }
-
-  const onRegister = async () => {
-    await register(email, password, name)
-    await onLogin()
-  }
-
   return (
-    <div>
-      <h1>Google Authentication with TypeScript</h1>
+    <div className="py-10 flex flex-col container gap-6">
+      <button className="py-2 px-10 rounded text-white bg-blue-500 font-medium self-start">Add Task</button>
 
-      {user ? (
-        <div>
-          <h2>Welcome, {user.name}</h2>
-          <pre>{JSON.stringify(user, null, 2)}</pre>
-          <button onClick={onLogout}>Logout</button>
-        </div>
-      ) : (
-        <div>
-          <h2>Login</h2>
-          <input type="email" placeholder="Email" onChange={e => setEmail(e.currentTarget.value)} />
-          <input type="password" placeholder="Password" onChange={e => setPassword(e.currentTarget.value)} />
-          <button onClick={onLogin}>Login</button>
+      <div className="flex items-center gap-4 p-4 rounded-md shadow-lg">
+        {/* <span className="font-medium text-lg">Search</span> */}
+        <input type="search" placeholder="Search" className="w-full p-2 border rounded" />
 
-          <h2>Register</h2>
-          <input type="text" placeholder="Name" onChange={e => setName(e.currentTarget.value)} />
-          <input type="email" placeholder="Email" onChange={e => setEmail(e.currentTarget.value)} />
-          <input type="password" placeholder="Password" onChange={e => setPassword(e.currentTarget.value)} />
-
-          <button onClick={onRegister}>Register</button>
-          <button onClick={onLoginWithGoogle}>Login with Google</button>
-        </div>
-      )}
+        <label className="font-medium shrink-0">Sort By</label>
+        <input type="search" placeholder="Search" className="w-full p-2 border rounded" />
+      </div>
     </div>
   )
 }

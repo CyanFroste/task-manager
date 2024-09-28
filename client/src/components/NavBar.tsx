@@ -30,14 +30,14 @@ export default function NavBar() {
             <ul className="ml-auto flex items-center gap-4">
               {user ? (
                 <li>
-                  <button className="py-2 px-4 rounded bg-white text-blue-500 font-medium" onClick={onLogout}>
+                  <button className="py-2 px-4 rounded text-white bg-red-400 font-medium" onClick={onLogout}>
                     Log Out
                   </button>
                 </li>
               ) : (
                 <>
                   <li>
-                    <Link to="/login" className="py-2 px-4 rounded bg-white text-blue-500 font-medium">
+                    <Link to="/login" className="block py-2 px-4 rounded bg-white text-blue-500 font-medium">
                       Login
                     </Link>
                   </li>
