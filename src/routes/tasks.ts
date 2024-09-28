@@ -16,7 +16,13 @@ export function getTaskRoutes(dbClient: MongoClient): Router {
   })
 
   router.get('/', async (req, res) => {
-    const tasks = await dbClient.db().collection('tasks').find().toArray()
+    const tasks = await dbClient
+      .db()
+      .collection('tasks')
+      .find()
+      .map(task => ({ ...task, id: task._id.toHexString() }))
+      .toArray()
+
     res.status(200).json(tasks)
   })
 
@@ -33,7 +39,7 @@ export function getTaskRoutes(dbClient: MongoClient): Router {
       return
     }
 
-    res.status(200).json(task)
+    res.status(200).json({ ...task, id: task._id.toHexString() })
   })
 
   router.patch('/:id', async (req, res) => {
@@ -61,7 +67,7 @@ export function getTaskRoutes(dbClient: MongoClient): Router {
       return
     }
 
-    res.status(200).json({ ...before, ...updatedTask })
+    res.status(200).json({ ...before, ...updatedTask, id: before._id.toHexString() })
   })
 
   router.delete('/:id', async (req, res) => {

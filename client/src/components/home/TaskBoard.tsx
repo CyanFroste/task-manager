@@ -1,48 +1,60 @@
-import { useState } from 'react'
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd'
-import sampleData from '../../sample-data.json'
-import type { ColumnMeta, Task, TaskBoardMeta, TaskStatus } from '../../types'
+import type { ColumnMeta, Task, TaskAction, TaskBoardMeta, TaskStatus } from '../../types'
+import { useCallback } from 'react'
 
-export default function TaskBoard() {
-  const [data, setData] = useState(sampleData as TaskBoardMeta)
+type Props = {
+  data: TaskBoardMeta
+  setData: React.Dispatch<React.SetStateAction<TaskBoardMeta>>
+  onTaskStatusUpdate: (id: string, status: TaskStatus) => void
+  setTaskAction: (task: Task, action: TaskAction) => void
+}
 
-  const onDragEnd: OnDragEndResponder = ({ source, destination, draggableId }) => {
-    if (!destination) return
-    if (destination.droppableId === source.droppableId && destination.index === source.index) return
+export default function TaskBoard({ data, setData, setTaskAction, onTaskStatusUpdate }: Props) {
+  const onDragEnd: OnDragEndResponder = useCallback(
+    ({ source, destination, draggableId }) => {
+      if (!destination) return
+      if (destination.droppableId === source.droppableId && destination.index === source.index) return
 
-    const startColumn = data.columns[source.droppableId as TaskStatus]
-    const finalColumn = data.columns[destination.droppableId as TaskStatus]
+      const startColumn = data.columns[source.droppableId as TaskStatus]
+      const finalColumn = data.columns[destination.droppableId as TaskStatus]
 
-    if (startColumn.id === finalColumn.id) {
-      const newTaskIds = [...startColumn.taskIds]
+      if (startColumn.id === finalColumn.id) {
+        const newTaskIds = [...startColumn.taskIds]
 
-      newTaskIds.splice(source.index, 1)
-      newTaskIds.splice(destination.index, 0, draggableId)
+        newTaskIds.splice(source.index, 1)
+        newTaskIds.splice(destination.index, 0, draggableId)
 
-      return setData(prev => ({
+        setData(prev => ({
+          ...prev,
+          columns: {
+            ...prev.columns,
+            [startColumn.id]: { ...startColumn, taskIds: newTaskIds },
+          },
+        }))
+
+        onTaskStatusUpdate(draggableId, finalColumn.id as TaskStatus)
+        return
+      }
+
+      const startTaskIds = [...startColumn.taskIds]
+      const finalTaskIds = [...finalColumn.taskIds]
+
+      startTaskIds.splice(source.index, 1)
+      finalTaskIds.splice(destination.index, 0, draggableId)
+
+      setData(prev => ({
         ...prev,
         columns: {
           ...prev.columns,
-          [startColumn.id]: { ...startColumn, taskIds: newTaskIds },
+          [startColumn.id]: { ...startColumn, taskIds: startTaskIds },
+          [finalColumn.id]: { ...finalColumn, taskIds: finalTaskIds },
         },
       }))
-    }
 
-    const startTaskIds = [...startColumn.taskIds]
-    const finalTaskIds = [...finalColumn.taskIds]
-
-    startTaskIds.splice(source.index, 1)
-    finalTaskIds.splice(destination.index, 0, draggableId)
-
-    setData(prev => ({
-      ...prev,
-      columns: {
-        ...prev.columns,
-        [startColumn.id]: { ...startColumn, taskIds: startTaskIds },
-        [finalColumn.id]: { ...finalColumn, taskIds: finalTaskIds },
-      },
-    }))
-  }
+      onTaskStatusUpdate(draggableId, finalColumn.id as TaskStatus)
+    },
+    [data.columns, onTaskStatusUpdate, setData],
+  )
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -51,16 +63,16 @@ export default function TaskBoard() {
           const column = data.columns[columnId as keyof typeof data.columns]
           const tasks = column.taskIds.map(taskId => data.tasks[taskId])
 
-          return <Column key={column.id} meta={column} tasks={tasks} />
+          return <Column key={column.id} meta={column} tasks={tasks} setTaskAction={setTaskAction} />
         })}
       </div>
     </DragDropContext>
   )
 }
 
-type ColumnProps = { meta: ColumnMeta; tasks: Task[] }
+type ColumnProps = { meta: ColumnMeta; tasks: Task[]; setTaskAction: (task: Task, action: TaskAction) => void }
 
-function Column({ meta, tasks }: ColumnProps) {
+function Column({ meta, tasks, setTaskAction }: ColumnProps) {
   return (
     <div className="flex flex-col gap-4 border rounded-md shadow-lg p-4">
       <div className="font-semibold bg-blue-400 text-white py-2 px-4">{meta.title}</div>
@@ -69,7 +81,14 @@ function Column({ meta, tasks }: ColumnProps) {
         {provided => (
           <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-col gap-2 min-h-32 h-full">
             {tasks.map((task, index) => (
-              <Task key={task.id} meta={task} index={index} />
+              <Task
+                key={task.id}
+                meta={task}
+                index={index}
+                onUpdate={() => setTaskAction(task, 'update')}
+                onDelete={() => setTaskAction(task, 'delete')}
+                onView={() => setTaskAction(task, 'view')}
+              />
             ))}
             {provided.placeholder}
           </div>
@@ -79,21 +98,29 @@ function Column({ meta, tasks }: ColumnProps) {
   )
 }
 
-type TaskProps = { meta: Task; index: number }
+type TaskProps = { meta: Task; index: number; onUpdate: () => void; onDelete: () => void; onView: () => void }
 
-function Task({ meta, index }: TaskProps) {
+function Task({ meta, index, onUpdate, onDelete, onView }: TaskProps) {
   return (
     <Draggable draggableId={meta.id} index={index}>
       {provided => (
         <div ref={provided.innerRef} {...provided.draggableProps} className="bg-blue-200 rounded">
-          <div className="p-4" {...provided.dragHandleProps}>
-            {meta.title}
+          <div className="p-4 flex flex-col gap-2" {...provided.dragHandleProps}>
+            <h3 className="text-lg font-medium">{meta.title || 'No Title'}</h3>
+            <p className="min-h-16">{meta.description}</p>
+            <span className="text-sm text-gray-700">Created at: {new Date(meta.createdAt).toLocaleString()}</span>
           </div>
 
           <div className="p-4 flex items-center gap-2 justify-end">
-            <button className="rounded text-white bg-red-400 font-medium py-1 px-2 text-sm">Delete</button>
-            <button className="rounded text-white bg-blue-400 font-medium py-1 px-2 text-sm">Edit</button>
-            <button className="rounded text-white bg-blue-500 font-medium py-1 px-2 text-sm">View Details</button>
+            <button className="rounded text-white bg-red-400 font-medium py-1 px-2 text-sm" onClick={onDelete}>
+              Delete
+            </button>
+            <button className="rounded text-white bg-blue-400 font-medium py-1 px-2 text-sm" onClick={onUpdate}>
+              Edit
+            </button>
+            <button className="rounded text-white bg-blue-500 font-medium py-1 px-2 text-sm" onClick={onView}>
+              View Details
+            </button>
           </div>
         </div>
       )}

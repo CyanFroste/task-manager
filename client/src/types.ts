@@ -29,3 +29,5 @@ export type TaskBoardMeta = {
   columns: Record<TaskStatus, ColumnMeta>
   columnOrder: TaskStatus[]
 }
+
+export type TaskAction = 'view' | 'update' | 'delete' | 'create'
