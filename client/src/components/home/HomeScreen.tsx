@@ -1,3 +1,5 @@
+import TaskBoard from './TaskBoard'
+
 export default function HomeScreen() {
   return (
     <div className="py-10 flex flex-col container gap-6">
@@ -10,6 +12,8 @@ export default function HomeScreen() {
         <label className="font-medium shrink-0">Sort By</label>
         <input type="search" placeholder="Search" className="w-full p-2 border rounded" />
       </div>
+
+      <TaskBoard />
     </div>
   )
 }

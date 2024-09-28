@@ -1,0 +1,46 @@
+{
+  "tasks": {
+    "1": {
+      "id": "1",
+      "title": "Task 1",
+      "description": "Description of task 1",
+      "status": "pending"
+    },
+    "2": {
+      "id": "2",
+      "title": "Task 2",
+      "description": "Description of task 2",
+      "status": "pending"
+    },
+    "3": {
+      "id": "3",
+      "title": "Task 3",
+      "description": "Description of task 3",
+      "status": "inProgress"
+    },
+    "4": {
+      "id": "4",
+      "title": "Task 4",
+      "description": "Description of task 4",
+      "status": "completed"
+    }
+  },
+  "columns": {
+    "pending": {
+      "id": "pending",
+      "title": "Pending",
+      "taskIds": ["1", "2"]
+    },
+    "inProgress": {
+      "id": "inProgress",
+      "title": "In Progress",
+      "taskIds": ["3"]
+    },
+    "completed": {
+      "id": "completed",
+      "title": "Completed",
+      "taskIds": ["4"]
+    }
+  },
+  "columnOrder": ["pending", "inProgress", "completed"]
+}
