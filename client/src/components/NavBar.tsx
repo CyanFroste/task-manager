@@ -29,11 +29,14 @@ export default function NavBar() {
 
             <ul className="ml-auto flex items-center gap-4">
               {user ? (
-                <li>
-                  <button className="py-2 px-4 rounded text-white bg-red-400 font-medium" onClick={onLogout}>
-                    Log Out
-                  </button>
-                </li>
+                <>
+                  <li className="text-lg font-medium">{user.name}</li>
+                  <li>
+                    <button className="py-2 px-4 rounded text-white bg-red-400 font-medium" onClick={onLogout}>
+                      Log Out
+                    </button>
+                  </li>
+                </>
               ) : (
                 <>
                   <li>
