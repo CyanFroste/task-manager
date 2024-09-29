@@ -31,17 +31,17 @@ export function createTaskBoardMeta(tasks: Task[]): TaskBoardMeta {
     columns: {
       pending: {
         id: 'pending',
-        title: 'Pending',
+        title: 'TODO',
         taskIds: tasks.filter(task => task.status === 'pending').map(task => task.id),
       },
       inProgress: {
         id: 'inProgress',
-        title: 'In Progress',
+        title: 'IN PROGRESS',
         taskIds: tasks.filter(task => task.status === 'inProgress').map(task => task.id),
       },
       completed: {
         id: 'completed',
-        title: 'Completed',
+        title: 'DONE',
         taskIds: tasks.filter(task => task.status === 'completed').map(task => task.id),
       },
     },

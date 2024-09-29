@@ -4,18 +4,21 @@ import TaskBoard from './TaskBoard'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createTask, deleteTask, getAllTasks, updateTask } from '../../services/tasks'
 import { createTaskBoardMeta } from '../../utils'
-import type { Task, TaskAction, TaskStatus } from '../../types'
+import type { Task, TaskActionType, TaskStatus } from '../../types'
 import Select from '../Select'
 
 type CreateTaskParams = { title: string; description: string }
 type UpdateTaskParams = { id: string; title?: string; description?: string; status?: TaskStatus }
+type TaskAction = { task?: Task; type: TaskActionType }
+
+const SORT_OPTIONS = ['Recent', 'Title (A-Z)']
 
 export default function HomeScreen() {
   const queryClient = useQueryClient()
 
   const [data, setData] = useState(createTaskBoardMeta([]))
-  const [showAddTask, setShowAddTask] = useState(false)
-  const [taskAction, setTaskAction] = useState<{ task: Task; action: TaskAction } | null>(null)
+  const [taskAction, setTaskAction] = useState<TaskAction | null>(null)
+  const [sortBy, setSortBy] = useState(SORT_OPTIONS[0])
 
   const queryTasks = useQuery({
     queryKey: ['TASKS'],
@@ -33,7 +36,7 @@ export default function HomeScreen() {
     mutationFn: ({ title, description }: CreateTaskParams) => createTask(title, description),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['TASKS'] })
-      setShowAddTask(false)
+      if (taskAction) setTaskAction(null)
     },
   })
 
@@ -75,7 +78,7 @@ export default function HomeScreen() {
   const onUpdateTask: React.FormEventHandler<HTMLFormElement> = useCallback(
     evt => {
       evt.preventDefault()
-      const id = taskAction?.task.id
+      const id = taskAction?.task?.id
       if (!id) return
 
       const title = (evt.currentTarget.elements.namedItem('title') as HTMLInputElement).value
@@ -83,39 +86,44 @@ export default function HomeScreen() {
 
       mutationUpdateTask.mutate({ id, title, description })
     },
-    [mutationUpdateTask, taskAction?.task.id],
+    [mutationUpdateTask, taskAction?.task?.id],
   )
 
   const onDeleteTask = useCallback(() => {
-    const id = taskAction?.task.id
+    const id = taskAction?.task?.id
     if (!id) return
 
     mutationDeleteTask.mutate(id)
-  }, [mutationDeleteTask, taskAction?.task.id])
+  }, [mutationDeleteTask, taskAction?.task?.id])
 
   return (
     <div className="py-10 flex flex-col container gap-6">
       <button
         className="py-2 px-10 rounded text-white bg-blue-500 font-medium self-start"
-        onClick={() => setShowAddTask(true)}>
+        onClick={() => setTaskAction({ type: 'create' })}>
         Add Task
       </button>
 
-      <div className="flex items-center gap-4 p-4 rounded-md shadow-lg">
-        <input type="search" placeholder="Search" className="w-full p-2 border rounded" />
+      <div className="flex flex-col md:flex-row items-center gap-4 p-4 rounded-md shadow-lg">
+        <label className="flex items-center gap-2 w-full md:w-1/2">
+          <span className="font-medium shrink-0">Search</span>
+          <input type="search" placeholder="Search" className="w-full p-2 border rounded" />
+        </label>
 
-        <label className="font-medium shrink-0">Sort By</label>
-        <Select options={['Title', 'Created At']} value="Title" onChange={() => {}} />
+        <div className="flex items-center gap-2 self-start md:ml-auto">
+          <span className="font-medium shrink-0">Sort By</span>
+          <Select options={SORT_OPTIONS} value={sortBy} onChange={setSortBy} />
+        </div>
       </div>
 
       <TaskBoard
         data={data}
         setData={setData}
         onTaskStatusUpdate={onTaskStatusUpdate}
-        setTaskAction={(task, action) => setTaskAction({ task, action })}
+        setTaskAction={(task, type) => setTaskAction({ task, type })}
       />
 
-      <Dialog open={showAddTask}>
+      <Dialog open={taskAction?.type === 'create'}>
         <div className="p-4 bg-white rounded shadow-lg m-auto w-[90%] max-w-screen-sm h-4/5 flex flex-col gap-4">
           <h2 className="text-xl font-semibold">Add Task</h2>
 
@@ -138,7 +146,7 @@ export default function HomeScreen() {
               <button
                 type="button"
                 className="bg-gray-200 rounded py-2 px-4 font-medium"
-                onClick={() => setShowAddTask(false)}>
+                onClick={() => setTaskAction(null)}>
                 Close
               </button>
             </div>
@@ -146,7 +154,7 @@ export default function HomeScreen() {
         </div>
       </Dialog>
 
-      <Dialog open={taskAction?.action === 'update'}>
+      <Dialog open={taskAction?.type === 'update'}>
         <div className="p-4 bg-white rounded shadow-lg m-auto w-[90%] max-w-screen-sm h-4/5 flex flex-col gap-4">
           <h2 className="text-xl font-semibold">Edit Task</h2>
 
@@ -188,7 +196,7 @@ export default function HomeScreen() {
         </div>
       </Dialog>
 
-      <Dialog open={taskAction?.action === 'delete'}>
+      <Dialog open={taskAction?.type === 'delete'}>
         <div className="p-4 bg-white rounded shadow-lg m-auto w-[90%] max-w-screen-sm flex flex-col gap-4">
           <h2 className="text-xl font-semibold">Delete Task</h2>
 
@@ -213,7 +221,7 @@ export default function HomeScreen() {
         </div>
       </Dialog>
 
-      <Dialog open={taskAction?.action === 'view'}>
+      <Dialog open={taskAction?.type === 'view'}>
         <div className="p-4 bg-white rounded shadow-lg m-auto w-[90%] max-w-screen-sm h-4/5 flex flex-col gap-2">
           <h2 className="text-xl font-semibold">Task Details</h2>
 
@@ -227,7 +235,7 @@ export default function HomeScreen() {
           <p className="text-sm">
             {taskAction?.task?.createdAt
               ? new Date(taskAction?.task?.createdAt).toLocaleString()
-              : '--/--/--- --:--:-- --'}
+              : '--/--/---- --:--:-- --'}
           </p>
 
           <div className="flex items-center gap-2 mt-auto ml-auto">

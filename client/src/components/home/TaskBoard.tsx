@@ -1,12 +1,12 @@
 import { DragDropContext, Draggable, Droppable, OnDragEndResponder } from '@hello-pangea/dnd'
-import type { ColumnMeta, Task, TaskAction, TaskBoardMeta, TaskStatus } from '../../types'
+import type { ColumnMeta, Task, TaskActionType, TaskBoardMeta, TaskStatus } from '../../types'
 import { useCallback } from 'react'
 
 type Props = {
   data: TaskBoardMeta
   setData: React.Dispatch<React.SetStateAction<TaskBoardMeta>>
   onTaskStatusUpdate: (id: string, status: TaskStatus) => void
-  setTaskAction: (task: Task, action: TaskAction) => void
+  setTaskAction: (task: Task, type: TaskActionType) => void
 }
 
 export default function TaskBoard({ data, setData, setTaskAction, onTaskStatusUpdate }: Props) {
@@ -58,7 +58,7 @@ export default function TaskBoard({ data, setData, setTaskAction, onTaskStatusUp
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {data.columnOrder.map(columnId => {
           const column = data.columns[columnId as keyof typeof data.columns]
           const tasks = column.taskIds.map(taskId => data.tasks[taskId])
@@ -70,7 +70,7 @@ export default function TaskBoard({ data, setData, setTaskAction, onTaskStatusUp
   )
 }
 
-type ColumnProps = { meta: ColumnMeta; tasks: Task[]; setTaskAction: (task: Task, action: TaskAction) => void }
+type ColumnProps = { meta: ColumnMeta; tasks: Task[]; setTaskAction: (task: Task, type: TaskActionType) => void }
 
 function Column({ meta, tasks, setTaskAction }: ColumnProps) {
   return (

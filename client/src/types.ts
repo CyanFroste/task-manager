@@ -30,4 +30,4 @@ export type TaskBoardMeta = {
   columnOrder: TaskStatus[]
 }
 
-export type TaskAction = 'view' | 'update' | 'delete' | 'create'
+export type TaskActionType = 'view' | 'update' | 'delete' | 'create'

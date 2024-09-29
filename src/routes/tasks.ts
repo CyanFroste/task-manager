@@ -23,6 +23,7 @@ export function getTaskRoutes(dbClient: MongoClient): Router {
       .db()
       .collection('tasks')
       .find({ userId })
+      .sort({ updatedAt: -1 })
       .map(task => ({ ...task, id: task._id.toHexString() }))
       .toArray()
 
@@ -49,19 +50,13 @@ export function getTaskRoutes(dbClient: MongoClient): Router {
   router.patch('/:id', async (req, res) => {
     const userId = (req.user as WithId<User>)?._id?.toHexString()
     const taskId = req.params.id
+    const { title, description, status }: Partial<Omit<Task, 'createdAt' | 'updatedAt' | 'userId'>> = req.body
 
-    const {
-      title = '',
-      description = '',
-      status = 'pending',
-    }: Partial<Omit<Task, 'createdAt' | 'updatedAt' | 'userId'>> = req.body
+    const updatedTask: Partial<Omit<Task, 'createdAt' | 'userId'>> = { updatedAt: new Date().toISOString() }
 
-    const updatedTask: Omit<Task, 'createdAt' | 'userId'> = {
-      title,
-      description,
-      status,
-      updatedAt: new Date().toISOString(),
-    }
+    if (title) updatedTask.title = title
+    if (description) updatedTask.description = description
+    if (status) updatedTask.status = status
 
     const before = await dbClient
       .db()
