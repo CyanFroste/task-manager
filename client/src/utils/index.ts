@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import type { GenericResponse, Task, TaskBoardMeta } from './types'
+import type { GenericResponse, Task, TaskBoardMeta } from '../types'
 
 export function parseGenericError(err: unknown) {
   if (err instanceof AxiosError) {
